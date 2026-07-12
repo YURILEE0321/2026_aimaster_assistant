@@ -1,0 +1,26 @@
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DATABASE_URL = os.getenv(
+    "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/wikigen"
+)
+
+QDRANT_URL = os.getenv("QDRANT_URL", "")
+QDRANT_API_KEY = os.getenv("QDRANT_API_KEY", "")
+QDRANT_SUMMARY_COLLECTION = os.getenv("QDRANT_SUMMARY_COLLECTION", "wiki_summary")
+QDRANT_CHUNK_COLLECTION = os.getenv("QDRANT_CHUNK_COLLECTION", "wiki_chunk")
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "")
+OPENAI_API_VERSION = os.getenv("OPENAI_API_VERSION", "")
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "aitl-prd-text-embedding-3-small")
+CHAT_MODEL = os.getenv("CHAT_MODEL", "gpt-4o")
+
+TOP_K_SUMMARY = int(os.getenv("TOP_K_SUMMARY", "5"))
+TOP_K_CHUNK = int(os.getenv("TOP_K_CHUNK", "8"))
+# 관련성 없는 검색 결과를 no_context로 보내기 위한 임계값. 실제 Qdrant 데이터의
+# 점수 분포를 보고 튜닝이 필요하다(assistant/readme.md 참고).
+MIN_SCORE = float(os.getenv("MIN_SCORE", "0.2"))

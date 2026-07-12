@@ -1,0 +1,43 @@
+:root {
+  --bg: #0b0e13;
+  --text: #f6f3ec;
+  --accent-text: #ff8a3d;
+  --ink-rgb: 246, 243, 236;
+  color-scheme: dark light;
+}
+
+:root[data-theme='light'] {
+  --bg: #f6f3ec;
+  --text: #181b14;
+  --accent-text: #b34a12;
+  --ink-rgb: 24, 27, 20;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100vh;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Sans KR', system-ui, sans-serif;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+button,
+input,
+textarea {
+  font-family: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}

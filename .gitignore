@@ -1,0 +1,22 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Runtime data
+backend-proxy/storage/uploads/
+
+# OS / editor
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# Frontend (frontend/.gitignore가 이미 커버하지만 안전망)
+node_modules/
+dist/
