@@ -64,10 +64,16 @@ API 계약(`POST /assistant/v1/chat`, `{space_id, question, history} -> {answer,
 걸리면 이후 노드(LLM 호출 포함)를 전혀 거치지 않고 고정 안내 메시지로 즉시 종료한다(`src/nodes/guardrail.py`,
 `src/lib/guardrail.py`).
 
+- Prompt Injection	시스템 프롬프트 노출·무시 지시 방지	
+- Domain Check	플랫폼과 무관한 질문 차단	
+- Permission Check	권한이 필요한 정보 요청 차단	
+- Input Validation	과도하게 긴 입력, 비정상 포맷 차단	수십 MB의 텍스트, 깨진 문자열
+- PII Detection 개인정보 포함 여부 확인
+
+
 - 정규식 기반(무료, LLM 호출 없음): 입력 검증(길이 초과/제어 문자/인코딩 손상), 프롬프트 인젝션 패턴,
   PII(주민등록번호/이메일/휴대폰번호/신용카드번호) 탐지
 - LLM 판단 1회(의미 판단 필요): Domain Check + Permission Check를 함께 처리
-  - own 경로(`space_id` 없음)는 AI Defect Inspection 플랫폼 도메인으로 고정 판단
   - proxy 경로(`space_id` 있음)는 space마다 도메인이 전혀 다르므로, 그 space에 실제 승인된 문서
     제목 목록을 근거로 판단(`build_guardrail_proxy_prompt`)
 - 재시도 루프(Query Rewriter → Question Analyzer)에는 다시 통과시키지 않는다(재작성된 질문은 사용자
@@ -84,10 +90,7 @@ API 계약(`POST /assistant/v1/chat`, `{space_id, question, history} -> {answer,
   큰 문서의 특정 단락만 물어보면 similarity_score가 구조적으로 낮게 나온다. 이에 own은 기존대로
   similarity 0.4 / RAGAS 0.6을 유지하고, proxy는 RAGAS 쪽을 더 신뢰하도록 similarity 0.2 / RAGAS 0.8로
   조정했다(`src/nodes/confidence_checker.py`).
-- **Query Rewriter 프롬프트 분기**: own 전용 플랫폼 도메인 힌트를 proxy 질의 재작성에 그대로 쓰면 무관한
-  용어가 섞여 검색이 오히려 나빠지는 문제가 있어(예: "spark 아키텍처" 질문이 "AI 비전 검사" 용어로
-  오염), proxy는 특정 플랫폼 용어를 추측하지 않는 별도 힌트(`_PROXY_DOMAIN_HINT`)를 사용한다
-  (`src/prompts.py`, `src/nodes/query_rewriter.py`).
+
 
 ## 참고
 
