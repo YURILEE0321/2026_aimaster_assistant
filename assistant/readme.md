@@ -100,3 +100,47 @@ API 계약(`POST /assistant/v1/chat`, `{space_id, question, history} -> {answer,
 - Neon처럼 풀링 커넥션이 접속 문자열의 `search_path` 옵션을 지원하지 않는 환경에서는
   `PROXY_DB_SEARCH_PATH`(예: `wikidb,public`)로 커넥션 직후 `SET search_path`를 실행한다
   (`src/clients/proxy_models.py`).
+
+
+## assistant 플로우
+### 플로우
+
+```
+START
+  │
+  ▼
+Input Guardrail        (Prompt Injection / Domain Check / Permission Check / Input Validation / PII Detection)
+  │
+  ├── 차단 시 ──────────────────────────► END (사유별 고정 안내 메시지, 이후 노드 전혀 안 거침)
+  │
+  ▼
+Conversation History (최근 5턴)   ← history[-(5*2):], 1턴 = 사용자+어시스턴트 한 쌍
+  │
+  ▼
+Question Analyzer      (Intent Classification + Entity Extraction + Keyword Extraction)
+  │
+  ▼
+Query Optimizer         (검색 질의 생성, 결정론적/LLM 호출 없음)
+  │
+  ▼
+AI Wiki Retriever       (Qdrant 벡터 검색, approval_status=approved 필터)
+  │
+  ▼
+Document Reranker       (벡터 유사도 65% + 개체명 일치 15% + 키워드 일치 10% + 최신성 10%)
+  │
+  ▼
+Context Builder         (컨텍스트 문자열 조립, LLM 호출 없음 — Confidence Checker가 RAGAS 평가에 필요)
+  │
+  ▼
+Confidence Checker      ← Similarity Score + RAGAS(Context Precision/Recall) 가중 평균 (답변 생성 전에 확인)
+  │
+  ├── confidence ≥ 0.7 ─────────────► Answer Generator → END (최종 답변, Faithfulness/Answer Relevancy 참고 평가)
+  │
+  └── confidence < 0.7
+        │
+        retry_count += 1
+        │
+        ├── retry_count ≤ 3 ──► Query Rewriter ──► Question Analyzer (루프)
+        │
+        └── retry_count > 3 ──► END ("담당자 문의" 고정 안내, 답변 생성 없음)
+```
